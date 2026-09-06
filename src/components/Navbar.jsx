@@ -3,12 +3,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
 import { useCart } from '../context/CartContext';
+import { useIsAdmin } from '../hooks/useIsAdmin';
 
 export default function Navbar() {
   const { instance, accounts } = useMsal();
   const estaLogueado = useIsAuthenticated();
   const location = useLocation();
   const { cantidad, actualizarContador } = useCart();
+  const { esAdmin } = useIsAdmin();
 
   useEffect(() => {
     if (estaLogueado) {
@@ -44,6 +46,11 @@ export default function Navbar() {
         {estaLogueado && (
           <Link to="/pedidos" className={esActiva('/pedidos') ? 'nav-link nav-link-activo' : 'nav-link'}>
             Mis pedidos
+          </Link>
+        )}
+        {esAdmin && (
+          <Link to="/admin" className={esActiva('/admin') ? 'nav-link nav-link-activo' : 'nav-link'}>
+            ⚙️ Admin
           </Link>
         )}
       </div>
