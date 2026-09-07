@@ -4,12 +4,6 @@ import { listarCarrito } from '../api/carritoApi';
 
 const CartContext = createContext(null);
 
-/**
- * Mantiene la cantidad total de items en el carrito, para mostrarla como
- * badge en el boton del navbar. Se actualiza manualmente (llamando a
- * actualizarContador()) despues de agregar/quitar items, en vez de
- * refrescarse solo, para no hacer llamadas de mas.
- */
 export function CartProvider({ children }) {
   const [cantidad, setCantidad] = useState(0);
   const { obtenerToken, estaLogueado } = useAccessToken();
