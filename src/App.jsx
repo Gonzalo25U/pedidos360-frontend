@@ -39,10 +39,16 @@ function RutaProtegida({ children }) {
 }
 
 export default function App() {
+  // El frontend puede servirse bajo una subruta (ej. ".../desarrollo/" cuando
+  // el API Gateway lo proxea) - VITE_BASE_PATH le dice a React Router cual es
+  // esa base, para que los links internos (/carrito, /pedidos) se resuelvan
+  // correctamente. En desarrollo local queda vacio (la app vive en la raiz).
+  const basename = import.meta.env.VITE_BASE_PATH || '';
+
   return (
     <ToastProvider>
       <CartProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={basename}>
           <Navbar />
           <main className="main-content">
             <Routes>
