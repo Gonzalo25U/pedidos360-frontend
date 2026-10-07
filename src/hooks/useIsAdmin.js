@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useIsAuthenticated } from '@azure/msal-react';
-import { useAccessToken } from './useAccessToken';
+import { useAuth } from '../context/AuthContext';
 import { decodeJwt } from '../utils/jwt';
 
 export function useIsAdmin() {
   const [esAdmin, setEsAdmin] = useState(false);
   const [verificando, setVerificando] = useState(true);
-  const estaLogueado = useIsAuthenticated();
-  const { obtenerToken } = useAccessToken();
+  const { estaLogueado, proveedor, obtenerToken } = useAuth();
 
   useEffect(() => {
     if (!estaLogueado) {
@@ -15,12 +13,13 @@ export function useIsAdmin() {
       setVerificando(false);
       return;
     }
+    setVerificando(true);
     (async () => {
       try {
         const token = await obtenerToken();
-        const payload = decodeJwt(token);
-        const roles = payload?.roles || [];
-        setEsAdmin(roles.includes('Admin'));
+        const payload = decodeJwt(token) || {};
+        const lista = [...(payload.roles || []), ...(payload['cognito:groups'] || [])];
+        setEsAdmin(lista.some((r) => String(r).toLowerCase() === 'admin'));
       } catch {
         setEsAdmin(false);
       } finally {
@@ -28,7 +27,7 @@ export function useIsAdmin() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [estaLogueado]);
+  }, [estaLogueado, proveedor]);
 
   return { esAdmin, verificando };
 }

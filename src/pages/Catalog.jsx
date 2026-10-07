@@ -6,11 +6,6 @@ import { useToast } from '../context/ToastContext';
 import { useCart } from '../context/CartContext';
 import ProductCard from '../components/ProductCard';
 
-/**
- * Catalogo PUBLICO: se carga sin pedir login (usa /publico/productos, que
- * no exige token ni en el Gateway ni en productos-ms). El login solo se
- * dispara cuando el usuario intenta agregar un producto al carrito.
- */
 export default function Catalog() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -40,6 +35,8 @@ export default function Catalog() {
       mostrarToast(`"${producto.nombre}" se agregó a tu carrito`, 'exito');
       actualizarContador();
     } catch (err) {
+      // Sin sesion: se abrio el selector de login, no es un error real.
+      if (err?.codigo === 'NO_AUTENTICADO') return;
       console.error(err);
       mostrarToast('No se pudo agregar el producto al carrito', 'error');
     } finally {

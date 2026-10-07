@@ -4,12 +4,15 @@ import { PublicClientApplication, EventType } from '@azure/msal-browser';
 import { MsalProvider } from '@azure/msal-react';
 import { msalConfig } from './authConfig';
 import App from './App';
+import { procesarCallbackCognito } from './auth/cognito';
 import './index.css';
 
 export const msalInstance = new PublicClientApplication(msalConfig);
 
 async function iniciarApp() {
   await msalInstance.initialize();
+
+  await procesarCallbackCognito();
 
   // Si ya hay una cuenta logueada (de una sesion anterior), la marca como activa.
   if (

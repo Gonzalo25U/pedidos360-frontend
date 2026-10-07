@@ -1,13 +1,11 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useMsal, useIsAuthenticated } from '@azure/msal-react';
-import { loginRequest } from '../authConfig';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useIsAdmin } from '../hooks/useIsAdmin';
 
 export default function Navbar() {
-  const { instance, accounts } = useMsal();
-  const estaLogueado = useIsAuthenticated();
+  const { estaLogueado, proveedor, nombreUsuario, abrirLogin, cerrarSesion } = useAuth();
   const location = useLocation();
   const { cantidad, actualizarContador } = useCart();
   const { esAdmin } = useIsAdmin();
@@ -18,16 +16,6 @@ export default function Navbar() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estaLogueado]);
-
-  function iniciarSesion() {
-    instance.loginPopup(loginRequest).then((respuesta) => {
-      instance.setActiveAccount(respuesta.account);
-    });
-  }
-
-  function cerrarSesion() {
-    instance.logoutPopup();
-  }
 
   function esActiva(ruta) {
     return location.pathname === ruta;
@@ -66,11 +54,16 @@ export default function Navbar() {
 
         {estaLogueado ? (
           <div className="navbar-user-group">
-            <span className="navbar-user">👤 {accounts[0]?.name || accounts[0]?.username}</span>
+            <span className="navbar-user">
+              👤 {nombreUsuario}
+              <span className={`provider-badge provider-badge-${proveedor}`}>
+                {proveedor === 'cognito' ? 'Cognito' : 'Azure AD'}
+              </span>
+            </span>
             <button className="btn-secondary" onClick={cerrarSesion}>Cerrar sesión</button>
           </div>
         ) : (
-          <button onClick={iniciarSesion}>Iniciar sesión</button>
+          <button onClick={abrirLogin}>Iniciar sesión</button>
         )}
       </div>
     </nav>

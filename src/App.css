@@ -558,3 +558,63 @@ button:disabled {
   color: var(--color-text-muted);
   font-size: 0.9rem;
 }
+
+/* ---------- Login con dos proveedores ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 30, 47, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.modal-card h2 { margin: 0; }
+.modal-subtitle { margin: 0 0 0.4rem; color: var(--color-text-muted); }
+
+.login-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  text-align: left;
+  border-radius: 12px;
+}
+
+.login-option-title { font-size: 1.05rem; font-weight: 600; }
+.login-option-desc { font-size: 0.85rem; opacity: 0.85; font-weight: 400; }
+
+.login-option-azure { background: #0078d4; }
+.login-option-azure:hover:not(:disabled) { background: #006abc; }
+.login-option-cognito { background: #ec7211; }
+.login-option-cognito:hover:not(:disabled) { background: #c85f0c; }
+
+.modal-cancel { align-self: center; margin-top: 0.3rem; }
+
+.provider-badge {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  vertical-align: middle;
+}
+.provider-badge-azure { background: #0078d4; }
+.provider-badge-cognito { background: #ec7211; }

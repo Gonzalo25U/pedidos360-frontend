@@ -1,4 +1,4 @@
-const redirectUri = import.meta.env.VITE_REDIRECT_URI || `${window.location.origin}/`;
+export const redirectUri = import.meta.env.VITE_REDIRECT_URI || `${window.location.origin}/`;
 
 export const msalConfig = {
   auth: {

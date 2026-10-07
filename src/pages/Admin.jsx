@@ -6,6 +6,7 @@ import {
   eliminarProducto,
 } from '../api/productosApi';
 import { listarTodosLosPedidos } from '../api/pedidosApi';
+import { listarTodasLasFacturas } from '../api/facturasApi';
 import { useAccessToken } from '../hooks/useAccessToken';
 import { useIsAdmin } from '../hooks/useIsAdmin';
 import { useToast } from '../context/ToastContext';
@@ -20,6 +21,7 @@ export default function Admin() {
   const [tab, setTab] = useState('productos');
   const [productos, setProductos] = useState([]);
   const [pedidos, setPedidos] = useState([]);
+  const [facturas, setFacturas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [formulario, setFormulario] = useState(PRODUCTO_VACIO);
   const [editandoId, setEditandoId] = useState(null);
@@ -36,10 +38,21 @@ export default function Admin() {
     setPedidos(data);
   }
 
+  async function cargarFacturas() {
+    try {
+      const token = await obtenerToken();
+      setFacturas(await listarTodasLasFacturas(token));
+    } catch (err) {
+      // No tumba el panel completo si facturacion-ms no responde.
+      console.error(err);
+      mostrarToast('No se pudieron cargar las facturas', 'error');
+    }
+  }
+
   useEffect(() => {
     if (!esAdmin) return;
     setCargando(true);
-    Promise.all([cargarProductos(), cargarPedidos()])
+    Promise.all([cargarProductos(), cargarPedidos(), cargarFacturas()])
       .catch((err) => {
         console.error(err);
         mostrarToast('No se pudo cargar la información de administrador', 'error');
@@ -147,6 +160,12 @@ export default function Admin() {
         >
           Todos los pedidos
         </button>
+        <button
+          className={tab === 'facturas' ? 'admin-tab admin-tab-activo' : 'admin-tab btn-secondary'}
+          onClick={() => setTab('facturas')}
+        >
+          Facturas
+        </button>
       </div>
 
       {cargando ? (
@@ -245,6 +264,38 @@ export default function Admin() {
             </table>
           )}
         </div>
+      ) : tab === 'facturas' ? (
+        facturas.length === 0 ? (
+          <div className="state-container">
+            <p className="state-icon">🧾</p>
+            <p>Todavía no hay facturas emitidas.</p>
+          </div>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>N° factura</th>
+                <th>Pedido</th>
+                <th>Usuario</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Emisión</th>
+              </tr>
+            </thead>
+            <tbody>
+              {facturas.map((f) => (
+                <tr key={f.id}>
+                  <td>{f.numeroFactura}</td>
+                  <td>#{f.pedidoId}</td>
+                  <td>{f.usuarioId}</td>
+                  <td>${f.total}</td>
+                  <td>{f.estado}</td>
+                  <td>{f.fechaEmision ? new Date(f.fechaEmision).toLocaleString('es-CL') : '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
       ) : pedidos.length === 0 ? (
         <div className="state-container">
           <p className="state-icon">📋</p>

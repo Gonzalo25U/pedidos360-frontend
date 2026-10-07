@@ -5,3 +5,4 @@ V2.1.0: Añadiendo la vista del admin
 V2.1.1: fix en las api's
 V3.0.0: Fix frontend detras del API Gateway (base path, redirect URI dinamico)
 V3.0.1: Fix en la ruta vite.config.js
+V4.0.0: Añadiendo Cognito + Nueva funcion del admin (Facturacion)

@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useIsAuthenticated, useMsal } from '@azure/msal-react';
-import { loginRequest } from './authConfig';
+import { useEffect, useRef } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import LoginModal from './components/LoginModal';
 import { ToastProvider } from './context/ToastContext';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
@@ -11,45 +11,47 @@ import Orders from './pages/Orders';
 import Admin from './pages/Admin';
 import './App.css';
 
-
+/**
+ * Envoltorio simple para rutas que requieren login. Si el usuario no esta
+ * autenticado, dispara el popup de login en vez de redirigir a una pagina
+ * de "acceso denegado" - asi la experiencia es fluida: "quiero ver mi
+ * carrito" -> se loguea ahi mismo -> ve su carrito.
+ */
 function RutaProtegida({ children }) {
-  const estaLogueado = useIsAuthenticated();
-  const { instance } = useMsal();
-  const intentandoLogin = useRef(false);
+  const { estaLogueado, abrirLogin } = useAuth();
+  const yaPidioLogin = useRef(false);
 
   useEffect(() => {
-    if (!estaLogueado && !intentandoLogin.current) {
-      intentandoLogin.current = true;
-      instance
-        .loginPopup(loginRequest)
-        .then((respuesta) => {
-          instance.setActiveAccount(respuesta.account);
-        })
-        .finally(() => {
-          intentandoLogin.current = false;
-        });
+    if (!estaLogueado && !yaPidioLogin.current) {
+      yaPidioLogin.current = true;
+      abrirLogin();
     }
-  }, [estaLogueado, instance]);
+    if (estaLogueado) yaPidioLogin.current = false;
+  }, [estaLogueado, abrirLogin]);
 
   if (!estaLogueado) {
-    return <p>Necesitas iniciar sesión para ver esta página...</p>;
+    return (
+      <div className="state-container">
+        <p className="state-icon">🔐</p>
+        <p>Necesitas iniciar sesión para ver esta página.</p>
+        <button onClick={abrirLogin}>Iniciar sesión</button>
+      </div>
+    );
   }
 
   return children;
 }
 
 export default function App() {
-  // El frontend puede servirse bajo una subruta (ej. ".../desarrollo/" cuando
-  // el API Gateway lo proxea) - VITE_BASE_PATH le dice a React Router cual es
-  // esa base, para que los links internos (/carrito, /pedidos) se resuelvan
-  // correctamente. En desarrollo local queda vacio (la app vive en la raiz).
   const basename = import.meta.env.VITE_BASE_PATH || '';
 
   return (
+    <AuthProvider>
     <ToastProvider>
       <CartProvider>
         <BrowserRouter basename={basename}>
           <Navbar />
+          <LoginModal />
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Catalog />} />
@@ -82,5 +84,6 @@ export default function App() {
         </BrowserRouter>
       </CartProvider>
     </ToastProvider>
+    </AuthProvider>
   );
 }
