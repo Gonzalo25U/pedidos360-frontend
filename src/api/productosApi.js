@@ -13,6 +13,15 @@ export async function obtenerProductoPublico(id) {
   return data;
 }
 
+/**
+ * Clickstream: avisa que el usuario (con sesion) vio un producto.
+ * productos-ms lo publica en Kafka como PRODUCTO_VISTO. Responde 202.
+ */
+export async function registrarVistaProducto(token, id) {
+  const cliente = crearClienteApi(token);
+  await cliente.post(`/api/productos/${id}/vista`);
+}
+
 /** Estas 3 requieren token con rol Admin - el backend las rechaza si no. */
 export async function crearProducto(token, producto) {
   const cliente = crearClienteApi(token);

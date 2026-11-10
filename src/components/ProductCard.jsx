@@ -1,10 +1,12 @@
-export default function ProductCard({ producto, onAgregar, agregando }) {
+export default function ProductCard({ producto, onAgregar, agregando, onVer, etiqueta }) {
   const sinStock = producto.stock <= 0;
 
   return (
-    <div className="product-card">
+    // onVer (opcional): clickstream. Se dispara al hacer clic en cualquier parte de la tarjeta.
+    <div className="product-card" onClick={() => onVer?.(producto)}>
       <div className="product-card-image">📦</div>
       <div className="product-card-body">
+        {etiqueta && <span className="product-badge">{etiqueta}</span>}
         <h3>{producto.nombre}</h3>
         <p className="product-description">{producto.descripcion}</p>
         <div className="product-card-footer">
