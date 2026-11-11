@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { listarCarrito, eliminarDelCarrito } from '../api/carritoApi';
-import { crearPedido } from '../api/pedidosApi';
+import { iniciarPago, redirigirAWebpay } from '../api/pagosApi';
 import { useAccessToken } from '../hooks/useAccessToken';
 import { useToast } from '../context/ToastContext';
 import { useCart } from '../context/CartContext';
@@ -9,11 +8,10 @@ import { useCart } from '../context/CartContext';
 export default function Cart() {
   const [items, setItems] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [procesandoPedido, setProcesandoPedido] = useState(false);
+  const [procesandoPago, setProcesandoPago] = useState(false);
   const { obtenerToken } = useAccessToken();
   const mostrarToast = useToast();
   const { actualizarContador } = useCart();
-  const navigate = useNavigate();
 
   async function cargarCarrito() {
     setCargando(true);
@@ -47,29 +45,38 @@ export default function Cart() {
     }
   }
 
-  async function manejarCheckout() {
+  /**
+   * El pedido ya NO se crea aqui: se crea cuando Webpay aprueba el pago.
+   * Flujo: pago-ms crea la transaccion con el carrito real -> redirigimos a
+   * Webpay -> Webpay vuelve a pago-ms -> pago-ms redirige a /pago/resultado.
+   */
+  async function manejarPagar() {
     if (items.length === 0) return;
-    setProcesandoPedido(true);
+    setProcesandoPago(true);
     try {
       const token = await obtenerToken();
-      const itemsPedido = items.map((i) => ({
-        productoId: i.productoId,
-        nombreProducto: i.nombreProducto,
-        cantidad: i.cantidad,
-        precioUnitario: i.precioUnitario,
-      }));
-      await crearPedido(token, itemsPedido);
-      for (const item of items) {
-        await eliminarDelCarrito(token, item.id);
-      }
-      mostrarToast('¡Tu pedido fue creado con éxito!', 'exito');
-      actualizarContador();
-      navigate('/pedidos');
+      const { url, token: tokenWs } = await iniciarPago(token);
+      mostrarToast('Redirigiendo a Webpay...', 'info');
+      redirigirAWebpay(url, tokenWs);
+      // La pagina se va a Webpay: no se reactiva el boton a proposito.
     } catch (err) {
       console.error(err);
-      mostrarToast('No se pudo procesar el pedido', 'error');
-    } finally {
-      setProcesandoPedido(false);
+      const status = err.response?.status;
+      const detalle = err.response?.data;
+      if (status === 429) {
+        const hasta = detalle?.bloqueadoHasta
+          ? new Date(detalle.bloqueadoHasta).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+          : null;
+        mostrarToast(
+          `Demasiados intentos de pago en poco tiempo. Tu cuenta quedó bloqueada temporalmente${hasta ? ` hasta las ${hasta}` : ''}.`,
+          'error'
+        );
+      } else if (status === 400) {
+        mostrarToast(detalle?.message || 'Tu carrito está vacío', 'error');
+      } else {
+        mostrarToast('No se pudo iniciar el pago. Intenta nuevamente.', 'error');
+      }
+      setProcesandoPago(false);
     }
   }
 
@@ -110,6 +117,7 @@ export default function Cart() {
                 <button
                   className="btn-secondary"
                   onClick={() => manejarEliminar(item.id, item.nombreProducto)}
+                  disabled={procesandoPago}
                 >
                   Quitar
                 </button>
@@ -118,8 +126,8 @@ export default function Cart() {
           </ul>
           <div className="cart-summary">
             <span className="cart-total">Total: ${total.toFixed(2)}</span>
-            <button onClick={manejarCheckout} disabled={procesandoPedido}>
-              {procesandoPedido ? 'Procesando...' : 'Confirmar pedido'}
+            <button onClick={manejarPagar} disabled={procesandoPago}>
+              {procesandoPago ? 'Redirigiendo a Webpay...' : 'Pagar con Webpay'}
             </button>
           </div>
         </>

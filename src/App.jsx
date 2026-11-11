@@ -9,6 +9,7 @@ import Catalog from './pages/Catalog';
 import Cart from './pages/Cart';
 import Orders from './pages/Orders';
 import Admin from './pages/Admin';
+import PagoResultado from './pages/PagoResultado';
 import './App.css';
 
 /**
@@ -43,6 +44,10 @@ function RutaProtegida({ children }) {
 }
 
 export default function App() {
+  // El frontend puede servirse bajo una subruta (ej. ".../desarrollo/" cuando
+  // el API Gateway lo proxea) - VITE_BASE_PATH le dice a React Router cual es
+  // esa base, para que los links internos (/carrito, /pedidos) se resuelvan
+  // correctamente. En desarrollo local queda vacio (la app vive en la raiz).
   const basename = import.meta.env.VITE_BASE_PATH || '';
 
   return (
@@ -60,6 +65,14 @@ export default function App() {
                 element={
                   <RutaProtegida>
                     <Cart />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/pago/resultado"
+                element={
+                  <RutaProtegida>
+                    <PagoResultado />
                   </RutaProtegida>
                 }
               />
