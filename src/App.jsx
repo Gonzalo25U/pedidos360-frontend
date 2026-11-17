@@ -10,6 +10,7 @@ import Cart from './pages/Cart';
 import Orders from './pages/Orders';
 import Admin from './pages/Admin';
 import PagoResultado from './pages/PagoResultado';
+import Dashboard from './pages/Dashboard';
 import './App.css';
 
 /**
@@ -89,6 +90,14 @@ export default function App() {
                 element={
                   <RutaProtegida>
                     <Admin />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <RutaProtegida>
+                    <Dashboard />
                   </RutaProtegida>
                 }
               />

@@ -41,6 +41,11 @@ export default function Navbar() {
             ⚙️ Admin
           </Link>
         )}
+        {esAdmin && (
+          <Link to="/dashboard" className={esActiva('/dashboard') ? 'nav-link nav-link-activo' : 'nav-link'}>
+            📊 Dashboard
+          </Link>
+        )}
       </div>
 
       <div className="navbar-auth">
